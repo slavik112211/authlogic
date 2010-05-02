@@ -92,6 +92,11 @@ module Authlogic
           remember_me_for.from_now
         end
         
+        def remember_me_expired?
+          return unless remember_me?
+          (Time.parse(cookie_credentials[2]) < Time.now)
+        end
+
         private
           def cookie_key
             build_key(self.class.cookie_key)
@@ -114,8 +119,9 @@ module Authlogic
           end
           
           def save_cookie
+            remember_me_string_value = "::#{remember_me_until}" if remember_me?
             controller.cookies[cookie_key] = {
-              :value => "#{record.persistence_token}::#{record.send(record.class.primary_key)}",
+              :value => "#{record.persistence_token}::#{record.send(record.class.primary_key)}" + remember_me_string_value.to_s,
               :expires => remember_me_until,
               :domain => controller.cookie_domain
             }

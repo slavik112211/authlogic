@@ -91,12 +91,30 @@ module SessionTest
         assert session = UserSession.find
         assert_equal ben, session.record
       end
+      
+      def test_remember_me_expired
+        UserSession.remember_me = true
+        ben = users(:ben)
+        session = UserSession.new(ben)
+        assert session.save
+        assert !session.remember_me_expired?
+        UserSession.remember_me = false
+      end
     
       def test_after_save_save_cookie
         ben = users(:ben)
         session = UserSession.new(ben)
         assert session.save
-        assert_equal "#{ben.persistence_token}::#{ben.id}", controller.cookies["user_credentials"]
+        assert controller.cookies["user_credentials"] == "#{ben.persistence_token}::#{ben.id}"
+      end
+      
+      def test_after_save_save_cookie_with_remember_me
+        UserSession.remember_me = true
+        ben = users(:ben)
+        session = UserSession.new(ben)
+        assert session.save
+        assert controller.cookies["user_credentials"] == "#{ben.persistence_token}::#{ben.id}::#{session.remember_me_until}"
+        UserSession.remember_me = false
       end
     
       def test_after_destroy_destroy_cookie
