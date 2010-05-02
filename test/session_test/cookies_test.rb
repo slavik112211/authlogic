@@ -98,7 +98,11 @@ module SessionTest
         session = UserSession.new(ben)
         assert session.save
         assert !session.remember_me_expired?
+
         UserSession.remember_me = false
+        session = UserSession.new(ben)
+        assert session.save
+        assert session.remember_me_expired? == nil
       end
     
       def test_after_save_save_cookie
